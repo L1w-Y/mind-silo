@@ -1,0 +1,32 @@
+[
+  {
+    "id": "idea-1",
+    "content": "可以做一个 CLI 工具，快速初始化项目模板，支持 Next.js / Vite / Astro 等多种框架。",
+    "tags": ["工具", "CLI", "开源"],
+    "createdAt": "2026-04-13T08:30:00Z"
+  },
+  {
+    "id": "idea-2",
+    "content": "博客应该支持 RSS 输出，方便读者订阅。可以用 Next.js 的 API Route 动态生成 RSS XML。",
+    "tags": ["博客", "RSS"],
+    "createdAt": "2026-04-12T20:15:00Z"
+  },
+  {
+    "id": "idea-3",
+    "content": "考虑给收藏模块添加自动截图功能，使用 Puppeteer 在收藏 URL 时自动截取网页缩略图。",
+    "tags": ["收藏", "自动化"],
+    "createdAt": "2026-04-11T16:40:00Z"
+  },
+  {
+    "id": "idea-4",
+    "content": "试试用 Framer Motion 给页面切换加上过渡动画，提升浏览体验。",
+    "tags": ["动画", "UX"],
+    "createdAt": "2026-04-10T13:20:00Z"
+  },
+  {
+    "id": "idea-5",
+    "content": "OpenClaw 机器人除了自动分类，还可以加一个摘要生成功能，对长文自动生成简短总结。",
+    "tags": ["OpenClaw", "AI"],
+    "createdAt": "2026-04-09T09:00:00Z"
+  }
+]

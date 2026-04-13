@@ -1,0 +1,47 @@
+[
+  {
+    "id": "bm-1",
+    "url": "https://nextjs.org/docs",
+    "title": "Next.js Documentation",
+    "summary": "Next.js 官方文档，涵盖路由、数据获取、部署等完整指南。",
+    "tags": ["Next.js", "文档", "React"],
+    "favicon": "https://nextjs.org/favicon.ico",
+    "createdAt": "2026-04-13T10:00:00Z"
+  },
+  {
+    "id": "bm-2",
+    "url": "https://tailwindcss.com/docs",
+    "title": "Tailwind CSS Docs",
+    "summary": "Tailwind CSS 官方文档，实用工具优先的 CSS 框架。",
+    "tags": ["CSS", "Tailwind", "文档"],
+    "favicon": "https://tailwindcss.com/favicons/favicon.ico",
+    "createdAt": "2026-04-12T15:30:00Z"
+  },
+  {
+    "id": "bm-3",
+    "url": "https://ui.shadcn.com",
+    "title": "shadcn/ui",
+    "summary": "精美的 React UI 组件集合，基于 Radix UI 和 Tailwind CSS。",
+    "tags": ["React", "UI", "组件库"],
+    "favicon": "https://ui.shadcn.com/favicon.ico",
+    "createdAt": "2026-04-11T09:20:00Z"
+  },
+  {
+    "id": "bm-4",
+    "url": "https://www.typescriptlang.org/docs/handbook",
+    "title": "TypeScript Handbook",
+    "summary": "TypeScript 官方手册，从基础到高级类型系统的完整教程。",
+    "tags": ["TypeScript", "文档", "教程"],
+    "favicon": "https://www.typescriptlang.org/favicon-32x32.png",
+    "createdAt": "2026-04-10T14:00:00Z"
+  },
+  {
+    "id": "bm-5",
+    "url": "https://github.com/vercel/next.js",
+    "title": "Next.js GitHub Repo",
+    "summary": "Next.js 开源仓库，查看源码、提 Issue、参与贡献。",
+    "tags": ["Next.js", "开源", "GitHub"],
+    "favicon": "https://github.com/favicon.ico",
+    "createdAt": "2026-04-09T11:45:00Z"
+  }
+]
