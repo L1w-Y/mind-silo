@@ -106,7 +106,7 @@ function escapeHtml(text: string): string {
 }
 
 export async function BlogSection() {
-  const posts = getPosts();
+  const posts = await getPosts();
 
   // Pre-render all posts on the server
   const renderedContents: Record<string, string> = {};

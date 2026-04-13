@@ -1,8 +1,8 @@
 import { getIdeas } from "@/lib/content";
 import { IdeaCard } from "@/components/IdeaCard";
 
-export function IdeasSection() {
-  const ideas = getIdeas();
+export async function IdeasSection() {
+  const ideas = await getIdeas();
 
   // Group by date
   const grouped = ideas.reduce<Record<string, typeof ideas>>((acc, idea) => {

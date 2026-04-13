@@ -1,11 +1,5 @@
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
+import db from "@/lib/db";
 import readingTime from "reading-time";
-
-const POSTS_DIR = path.join(process.cwd(), "content/posts");
-const JOURNAL_DIR = path.join(process.cwd(), "content/journal");
-const DATA_DIR = path.join(process.cwd(), "data");
 
 // ==================== Types ====================
 
@@ -52,96 +46,93 @@ export interface JournalBlock {
 
 // ==================== Posts ====================
 
-export function getPosts(): Post[] {
-  if (!fs.existsSync(POSTS_DIR)) return [];
+export async function getPosts(): Promise<Post[]> {
+  const result = await db.execute({
+    sql: "SELECT * FROM posts ORDER BY date DESC",
+    args: [],
+  });
 
-  const files = fs.readdirSync(POSTS_DIR).filter((f) => f.endsWith(".mdx"));
-
-  const posts = files.map((file) => {
-    const slug = file.replace(/\.mdx$/, "");
-    const raw = fs.readFileSync(path.join(POSTS_DIR, file), "utf-8");
-    const { data, content } = matter(raw);
+  return result.rows.map((row) => {
+    const content = row.content as string;
     const stats = readingTime(content);
-
     return {
-      slug,
-      title: data.title || slug,
-      date: data.date || "",
-      tags: data.tags || [],
-      summary: data.summary || "",
+      slug: row.slug as string,
+      title: row.title as string,
+      date: row.date as string,
+      tags: JSON.parse((row.tags as string) || "[]"),
+      summary: (row.summary as string) || "",
       readingTime: stats.text,
       content,
     };
   });
-
-  return posts.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
 }
 
-export function getPostBySlug(slug: string): Post | undefined {
-  return getPosts().find((p) => p.slug === slug);
+export async function getPostBySlug(slug: string): Promise<Post | undefined> {
+  const posts = await getPosts();
+  return posts.find((p) => p.slug === slug);
 }
 
 // ==================== Bookmarks ====================
 
-export function getBookmarks(): Bookmark[] {
-  const filePath = path.join(DATA_DIR, "bookmarks.json");
-  if (!fs.existsSync(filePath)) return [];
+export async function getBookmarks(): Promise<Bookmark[]> {
+  const result = await db.execute({
+    sql: "SELECT * FROM bookmarks ORDER BY created_at DESC",
+    args: [],
+  });
 
-  const raw = fs.readFileSync(filePath, "utf-8");
-  const bookmarks: Bookmark[] = JSON.parse(raw);
-
-  return bookmarks.sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return result.rows.map((row) => ({
+    id: row.id as string,
+    url: row.url as string,
+    title: row.title as string,
+    summary: (row.summary as string) || "",
+    tags: JSON.parse((row.tags as string) || "[]"),
+    favicon: (row.favicon as string) || "",
+    createdAt: row.created_at as string,
+  }));
 }
 
 // ==================== Ideas ====================
 
-export function getIdeas(): Idea[] {
-  const filePath = path.join(DATA_DIR, "ideas.json");
-  if (!fs.existsSync(filePath)) return [];
+export async function getIdeas(): Promise<Idea[]> {
+  const result = await db.execute({
+    sql: "SELECT * FROM ideas ORDER BY created_at DESC",
+    args: [],
+  });
 
-  const raw = fs.readFileSync(filePath, "utf-8");
-  const ideas: Idea[] = JSON.parse(raw);
-
-  return ideas.sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return result.rows.map((row) => ({
+    id: row.id as string,
+    content: row.content as string,
+    tags: JSON.parse((row.tags as string) || "[]"),
+    createdAt: row.created_at as string,
+  }));
 }
 
 // ==================== Journal ====================
 
-export function getJournalEntries(): JournalEntry[] {
-  if (!fs.existsSync(JOURNAL_DIR)) return [];
-
-  const files = fs.readdirSync(JOURNAL_DIR).filter((f) => f.endsWith(".mdx"));
-
-  const entries = files.map((file) => {
-    const slug = file.replace(/\.mdx$/, "");
-    const raw = fs.readFileSync(path.join(JOURNAL_DIR, file), "utf-8");
-    const { data, content } = matter(raw);
-
-    return {
-      slug,
-      title: data.title || slug,
-      date: data.date || "",
-      content,
-    };
+export async function getJournalEntries(): Promise<JournalEntry[]> {
+  const result = await db.execute({
+    sql: "SELECT * FROM journals ORDER BY date DESC",
+    args: [],
   });
 
-  return entries.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  return result.rows.map((row) => ({
+    slug: row.slug as string,
+    title: row.title as string,
+    date: row.date as string,
+    content: row.content as string,
+  }));
 }
 
-export function getJournalLayout(): JournalBlock[] {
-  const filePath = path.join(DATA_DIR, "journal-layout.json");
-  if (!fs.existsSync(filePath)) return [];
+export async function getJournalLayout(): Promise<JournalBlock[]> {
+  const result = await db.execute({
+    sql: "SELECT id, slug, layout_width, layout_order FROM journals ORDER BY layout_order ASC",
+    args: [],
+  });
 
-  const raw = fs.readFileSync(filePath, "utf-8");
-  return JSON.parse(raw);
+  return result.rows.map((row) => ({
+    id: row.id as string,
+    entryFile: `${row.slug as string}.mdx`,
+    width: (row.layout_width as "full" | "half" | "third") || "full",
+    order: (row.layout_order as number) || 0,
+  }));
 }

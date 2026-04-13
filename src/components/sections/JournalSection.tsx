@@ -2,9 +2,9 @@ import { getJournalEntries, getJournalLayout } from "@/lib/content";
 import { JournalSectionClient } from "./JournalSectionClient";
 import { BlockData } from "@/components/Block";
 
-export function JournalSection() {
-  const entries = getJournalEntries();
-  const layout = getJournalLayout();
+export async function JournalSection() {
+  const entries = await getJournalEntries();
+  const layout = await getJournalLayout();
 
   const blocks: BlockData[] = entries.map((entry) => {
     const layoutItem = layout.find(

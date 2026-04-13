@@ -10,9 +10,9 @@ export async function HomeSection() {
     getContributions(),
   ]);
 
-  const posts = getPosts();
-  const bookmarks = getBookmarks();
-  const ideas = getIdeas();
+  const posts = await getPosts();
+  const bookmarks = await getBookmarks();
+  const ideas = await getIdeas();
 
   return (
     <div className="hero-sky min-h-screen flex flex-col">

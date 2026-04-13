@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import db from "@/lib/db";
 
 interface CollectRequest {
   type: "bookmark" | "idea" | "post" | "journal";
   content: string;
   tags?: string[];
   title?: string;
+  summary?: string;
   layout?: {
     width: "full" | "half" | "third";
     order: number;
   };
 }
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const CONTENT_DIR = path.join(process.cwd(), "content");
-
 export async function POST(request: NextRequest) {
   try {
-    // Simple auth check via Bearer token
     const authHeader = request.headers.get("authorization");
     const token = process.env.COLLECT_API_TOKEN;
     if (token && authHeader !== `Bearer ${token}`) {
@@ -58,51 +54,31 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function handleBookmark(body: CollectRequest) {
-  const filePath = path.join(DATA_DIR, "bookmarks.json");
-  const existing = fs.existsSync(filePath)
-    ? JSON.parse(fs.readFileSync(filePath, "utf-8"))
-    : [];
+async function handleBookmark(body: CollectRequest) {
+  const id = `bm-${Date.now()}`;
+  const createdAt = new Date().toISOString();
 
-  const newBookmark = {
-    id: `bm-${Date.now()}`,
-    url: body.content,
-    title: body.title || body.content,
-    summary: "",
-    tags: body.tags || [],
-    favicon: "",
-    createdAt: new Date().toISOString(),
-  };
+  await db.execute({
+    sql: `INSERT INTO bookmarks (id, url, title, summary, tags, favicon, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    args: [id, body.content, body.title || body.content, body.summary || "", JSON.stringify(body.tags || []), "", createdAt],
+  });
 
-  existing.unshift(newBookmark);
-  fs.writeFileSync(filePath, JSON.stringify(existing, null, 2));
-
-  return NextResponse.json({ success: true, item: newBookmark });
+  return NextResponse.json({ success: true, item: { id, url: body.content, title: body.title, createdAt } });
 }
 
-function handleIdea(body: CollectRequest) {
-  const filePath = path.join(DATA_DIR, "ideas.json");
-  const existing = fs.existsSync(filePath)
-    ? JSON.parse(fs.readFileSync(filePath, "utf-8"))
-    : [];
+async function handleIdea(body: CollectRequest) {
+  const id = `idea-${Date.now()}`;
+  const createdAt = new Date().toISOString();
 
-  const newIdea = {
-    id: `idea-${Date.now()}`,
-    content: body.content,
-    tags: body.tags || [],
-    createdAt: new Date().toISOString(),
-  };
+  await db.execute({
+    sql: `INSERT INTO ideas (id, content, tags, created_at) VALUES (?, ?, ?, ?)`,
+    args: [id, body.content, JSON.stringify(body.tags || []), createdAt],
+  });
 
-  existing.unshift(newIdea);
-  fs.writeFileSync(filePath, JSON.stringify(existing, null, 2));
-
-  return NextResponse.json({ success: true, item: newIdea });
+  return NextResponse.json({ success: true, item: { id, content: body.content, createdAt } });
 }
 
-function handlePost(body: CollectRequest) {
-  const postsDir = path.join(CONTENT_DIR, "posts");
-  if (!fs.existsSync(postsDir)) fs.mkdirSync(postsDir, { recursive: true });
-
+async function handlePost(body: CollectRequest) {
   const slug =
     body.title
       ?.toLowerCase()
@@ -110,64 +86,39 @@ function handlePost(body: CollectRequest) {
       .replace(/(^-|-$)/g, "") || `post-${Date.now()}`;
 
   const date = new Date().toISOString().split("T")[0];
-  const frontmatter = [
-    "---",
-    `title: "${body.title || "Untitled"}"`,
-    `date: "${date}"`,
-    `tags: [${(body.tags || []).map((t) => `"${t}"`).join(", ")}]`,
-    `summary: ""`,
-    "---",
-    "",
-    body.content,
-  ].join("\n");
+  const id = `post-${slug}`;
 
-  fs.writeFileSync(path.join(postsDir, `${slug}.mdx`), frontmatter);
+  await db.execute({
+    sql: `INSERT OR REPLACE INTO posts (id, slug, title, content, summary, tags, date) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    args: [id, slug, body.title || "Untitled", body.content, body.summary || "", JSON.stringify(body.tags || []), date],
+  });
 
   return NextResponse.json({ success: true, slug });
 }
 
-function handleJournal(body: CollectRequest) {
-  const journalDir = path.join(CONTENT_DIR, "journal");
-  if (!fs.existsSync(journalDir))
-    fs.mkdirSync(journalDir, { recursive: true });
-
+async function handleJournal(body: CollectRequest) {
   const date = new Date().toISOString().split("T")[0];
   const slug = date;
-  const filePath = path.join(journalDir, `${slug}.mdx`);
+  const id = `journal-${slug}`;
 
-  if (fs.existsSync(filePath)) {
-    // Append to existing entry
-    const existing = fs.readFileSync(filePath, "utf-8");
-    fs.writeFileSync(filePath, existing + "\n\n" + body.content);
-  } else {
-    const frontmatter = [
-      "---",
-      `title: "${body.title || date}"`,
-      `date: "${date}"`,
-      "---",
-      "",
-      body.content,
-    ].join("\n");
-    fs.writeFileSync(filePath, frontmatter);
-  }
+  // Check if entry exists
+  const existing = await db.execute({
+    sql: `SELECT content FROM journals WHERE slug = ?`,
+    args: [slug],
+  });
 
-  // Update layout
-  const layoutPath = path.join(DATA_DIR, "journal-layout.json");
-  const layout = fs.existsSync(layoutPath)
-    ? JSON.parse(fs.readFileSync(layoutPath, "utf-8"))
-    : [];
-
-  const existingBlock = layout.find(
-    (l: any) => l.entryFile === `${slug}.mdx`
-  );
-  if (!existingBlock) {
-    layout.push({
-      id: `block-${Date.now()}`,
-      entryFile: `${slug}.mdx`,
-      width: body.layout?.width || "full",
-      order: body.layout?.order ?? layout.length,
+  if (existing.rows.length > 0) {
+    // Append
+    const oldContent = existing.rows[0].content as string;
+    await db.execute({
+      sql: `UPDATE journals SET content = ? WHERE slug = ?`,
+      args: [oldContent + "\n\n" + body.content, slug],
     });
-    fs.writeFileSync(layoutPath, JSON.stringify(layout, null, 2));
+  } else {
+    await db.execute({
+      sql: `INSERT INTO journals (id, slug, title, content, date, layout_width, layout_order) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      args: [id, slug, body.title || date, body.content, date, body.layout?.width || "full", body.layout?.order ?? 0],
+    });
   }
 
   return NextResponse.json({ success: true, slug });

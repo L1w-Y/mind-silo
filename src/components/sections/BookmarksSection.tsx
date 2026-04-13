@@ -1,7 +1,7 @@
 import { getBookmarks } from "@/lib/content";
 import { BookmarksSectionClient } from "./BookmarksSectionClient";
 
-export function BookmarksSection() {
-  const bookmarks = getBookmarks();
+export async function BookmarksSection() {
+  const bookmarks = await getBookmarks();
   return <BookmarksSectionClient bookmarks={bookmarks} />;
 }
