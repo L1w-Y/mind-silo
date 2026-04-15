@@ -28,7 +28,7 @@
 
 ### POST /api/collect
 
-OpenClaw 机器人 webhook 接口，**直接写入 Turso 数据库**。
+内容写入接口（OpenClaw / 外部调用），**直接写入 Turso 数据库**。
 
 **请求体**：
 ```json
@@ -47,4 +47,14 @@ OpenClaw 机器人 webhook 接口，**直接写入 Turso 数据库**。
 - `bookmark` → INSERT INTO bookmarks
 - `idea` → INSERT INTO ideas
 - `post` → INSERT INTO posts
-- `journal` → INSERT/UPDATE journals（同日追加）
+- `journal` → INSERT INTO journals（每条独立记录）
+
+### GET /api/meta
+
+元数据接口，返回当前系统状态（供 OpenClaw 感知）。
+
+**无需认证**，返回 JSON：
+- `tags` — 各表已有标签列表
+- `counts` — 各表数据量统计
+- `schema` — 表结构及字段说明
+- `collectAPI` — 写入 API 的请求格式

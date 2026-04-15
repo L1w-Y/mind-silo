@@ -98,28 +98,14 @@ async function handlePost(body: CollectRequest) {
 
 async function handleJournal(body: CollectRequest) {
   const date = new Date().toISOString().split("T")[0];
-  const slug = date;
-  const id = `journal-${slug}`;
+  const ts = Date.now();
+  const slug = `${date}-${ts}`;
+  const id = `journal-${ts}`;
 
-  // Check if entry exists
-  const existing = await db.execute({
-    sql: `SELECT content FROM journals WHERE slug = ?`,
-    args: [slug],
+  await db.execute({
+    sql: `INSERT INTO journals (id, slug, title, content, date, layout_width, layout_order) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    args: [id, slug, body.title || date, body.content, date, body.layout?.width || "full", body.layout?.order ?? 0],
   });
-
-  if (existing.rows.length > 0) {
-    // Append
-    const oldContent = existing.rows[0].content as string;
-    await db.execute({
-      sql: `UPDATE journals SET content = ? WHERE slug = ?`,
-      args: [oldContent + "\n\n" + body.content, slug],
-    });
-  } else {
-    await db.execute({
-      sql: `INSERT INTO journals (id, slug, title, content, date, layout_width, layout_order) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      args: [id, slug, body.title || date, body.content, date, body.layout?.width || "full", body.layout?.order ?? 0],
-    });
-  }
 
   return NextResponse.json({ success: true, slug });
 }

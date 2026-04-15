@@ -74,12 +74,17 @@
 ### 设计方案
 - **[docs/plans/](docs/plans/)** — 历史设计方案和实施计划
 
+### OpenClaw 集成
+- **[docs/openclaw/context.md](docs/openclaw/context.md)** — 数据结构与 API 参考（OpenClaw 的上下文文档）
+- **[docs/openclaw/mind-silo-collect.skill.md](docs/openclaw/mind-silo-collect.skill.md)** — OpenClaw 内容收集 Skill
+
 ### 修改特定内容时的联动要求
 - 新增/修改组件 → 更新 `src/components/README.md`
 - 新增/修改工具函数 → 更新 `src/lib/README.md`
-- 修改 API 接口 → 更新 `src/app/README.md`
-- 修改数据库表结构 → 更新 `src/lib/README.md` + 运行 `init-db.ts`
+- 修改 API 接口 → 更新 `src/app/README.md` + `docs/openclaw/context.md`
+- 修改数据库表结构 → 更新 `src/lib/README.md` + `docs/openclaw/context.md` + 运行 `init-db.ts`
 - 修改设计风格 → 更新 `DESIGN.md`
+- 修改内容分类/标签规则 → 更新 `docs/openclaw/context.md` + `mind-silo-collect.skill.md`
 
 ---
 
@@ -111,6 +116,7 @@ Turso 数据库 ← src/lib/db.ts ← src/lib/content.ts ← Server Components
 - `POST /api/collect` — 接收 `{ type, content, tags?, title?, summary? }` 写入 Turso 数据库
   - type: `bookmark` | `idea` | `post` | `journal`
   - 鉴权：Bearer Token（通过 `COLLECT_API_TOKEN` 环境变量配置）
+- `GET /api/meta` — 返回当前标签列表、各表统计、表结构、API 格式（供 OpenClaw 感知状态）
 
 ---
 
