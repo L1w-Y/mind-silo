@@ -11,6 +11,8 @@ export interface Post {
   summary: string;
   readingTime: string;
   content: string;
+  color?: string | null;
+  cardWidth?: string;
 }
 
 export interface Bookmark {
@@ -21,6 +23,8 @@ export interface Bookmark {
   tags: string[];
   favicon: string;
   createdAt: string;
+  color?: string | null;
+  cardWidth?: string;
 }
 
 export interface Idea {
@@ -28,6 +32,8 @@ export interface Idea {
   content: string;
   tags: string[];
   createdAt: string;
+  color?: string | null;
+  cardWidth?: string;
 }
 
 export interface JournalEntry {
@@ -35,6 +41,8 @@ export interface JournalEntry {
   title: string;
   date: string;
   content: string;
+  color?: string | null;
+  cardWidth?: string;
 }
 
 export interface JournalBlock {
@@ -63,6 +71,8 @@ export async function getPosts(): Promise<Post[]> {
       summary: (row.summary as string) || "",
       readingTime: stats.text,
       content,
+      color: (row.color as string) || null,
+      cardWidth: (row.card_width as string) || "half",
     };
   });
 }
@@ -88,6 +98,8 @@ export async function getBookmarks(): Promise<Bookmark[]> {
     tags: JSON.parse((row.tags as string) || "[]"),
     favicon: (row.favicon as string) || "",
     createdAt: row.created_at as string,
+    color: (row.color as string) || null,
+    cardWidth: (row.card_width as string) || "third",
   }));
 }
 
@@ -104,6 +116,8 @@ export async function getIdeas(): Promise<Idea[]> {
     content: row.content as string,
     tags: JSON.parse((row.tags as string) || "[]"),
     createdAt: row.created_at as string,
+    color: (row.color as string) || null,
+    cardWidth: (row.card_width as string) || "third",
   }));
 }
 
@@ -120,6 +134,8 @@ export async function getJournalEntries(): Promise<JournalEntry[]> {
     title: row.title as string,
     date: row.date as string,
     content: row.content as string,
+    color: (row.color as string) || null,
+    cardWidth: (row.card_width as string) || "full",
   }));
 }
 

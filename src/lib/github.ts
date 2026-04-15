@@ -17,20 +17,53 @@ const GITHUB_USERNAME = process.env.GITHUB_USERNAME || "L1w-Y";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
 
 export async function getRepos(): Promise<GitHubRepo[]> {
-  try {
-    const headers: Record<string, string> = {
-      Accept: "application/vnd.github.v3+json",
-    };
-    if (GITHUB_TOKEN) {
-      headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
-    }
+  if (!GITHUB_TOKEN) return getSampleRepos();
 
-    const res = await fetch(
-      `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=6`,
-      { headers, next: { revalidate: 3600 } }
-    );
+  try {
+    // 优先获取 pinned repos（主页置顶的项目）
+    const res = await fetch("https://api.github.com/graphql", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: `query($username: String!) {
+          user(login: $username) {
+            pinnedItems(first: 6, types: REPOSITORY) {
+              nodes {
+                ... on Repository {
+                  name
+                  description
+                  url
+                  stargazerCount
+                  primaryLanguage { name }
+                  updatedAt
+                }
+              }
+            }
+          }
+        }`,
+        variables: { username: GITHUB_USERNAME },
+      }),
+      next: { revalidate: 3600 },
+    });
+
     if (!res.ok) return getSampleRepos();
-    return res.json();
+
+    const json = await res.json();
+    const nodes = json?.data?.user?.pinnedItems?.nodes;
+
+    if (!nodes || nodes.length === 0) return getSampleRepos();
+
+    return nodes.map((repo: Record<string, unknown>) => ({
+      name: repo.name as string,
+      description: repo.description as string | null,
+      html_url: repo.url as string,
+      stargazers_count: repo.stargazerCount as number,
+      language: (repo.primaryLanguage as Record<string, string> | null)?.name || null,
+      updated_at: repo.updatedAt as string,
+    }));
   } catch {
     return getSampleRepos();
   }

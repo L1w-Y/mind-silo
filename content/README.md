@@ -1,16 +1,19 @@
-# content — 内容目录
+# content — 历史内容目录
+
+> ⚠️ **注意**：此目录中的 MDX 文件为历史内容，**已迁移到 Turso 数据库**。
+> 
+> 当前项目通过 `src/lib/content.ts` 从数据库读取内容，不再依赖这些文件。
+> 保留仅供参考和数据库初始化脚本（`src/scripts/init-db.ts`）使用。
 
 ## 结构
 
 ```
 content/
-├── posts/       # 博客文章（MDX 格式）
-└── journal/     # 日常记录（MDX 格式）
+├── posts/       # 博客文章（MDX）→ 已迁移到 posts 表
+└── journal/     # 日常记录（MDX）→ 已迁移到 journals 表
 ```
 
-## 博客文章 (`posts/`)
-
-每篇文章为一个 `.mdx` 文件，必须包含以下 frontmatter：
+## MDX Frontmatter 格式（参考）
 
 ```yaml
 ---
@@ -20,20 +23,3 @@ tags: ["标签1", "标签2"]
 summary: "文章摘要"
 ---
 ```
-
-正文使用标准 Markdown 语法，支持代码块高亮（Shiki）。
-
-**文件名即 slug**：`hello-world.mdx` → slug 为 `hello-world`。
-
-## 日常记录 (`journal/`)
-
-每条记录为一个 `.mdx` 文件，推荐以日期命名：
-
-```yaml
----
-title: "2026年4月13日"
-date: "2026-04-13"
----
-```
-
-布局元数据存储在 `data/journal-layout.json`，控制每个块的宽度和排序。

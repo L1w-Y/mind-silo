@@ -11,32 +11,32 @@
 
 | 组件 | 类型 | 说明 |
 |------|------|------|
-| `FloatingNav.tsx` | Client | 左侧悬浮胶囊导航，IntersectionObserver 滚动同步高亮，hover 滑块跟随 |
-| `ThemeToggle.tsx` | Client | 右上角主题切换按钮，太阳/月亮旋转动画 |
-| `ReadingPanel.tsx` | Client | 博客右侧滑出阅读面板，backdrop + 滑入动画 |
-| `SearchBar.tsx` | Client | 搜索栏，即时搜索 + 下拉结果 |
-| `TableOfContents.tsx` | Client | 文章目录导航，提取 h2/h3，滚动高亮 |
-| `MDXRenderer.tsx` | Server | Markdown → HTML 渲染器，集成 Shiki 代码高亮 |
-| `BlockEditor.tsx` | Client | 日常块编辑器，@dnd-kit 拖拽排序 |
-| `Block.tsx` | Client | 单个内容块，支持 full/half/third 宽度切换 |
-| `BookmarkCard.tsx` | Server | 收藏卡片（favicon + 标题 + 摘要 + 标签） |
-| `IdeaCard.tsx` | Server | 想法卡片（内容 + 标签 + 时间戳） |
-| `TagFilter.tsx` | Client | 标签筛选栏，点击切换高亮 |
-| `ContributionGrid.tsx` | Client | GitHub 贡献网格（类似 GitHub Profile 绿色格子） |
-| `GitHubActivity.tsx` | Server | GitHub 模块组合（贡献网格 + 仓库卡片） |
-| `LatestContent.tsx` | Server | 最新内容聚合（博客 + 收藏 + 想法） |
-| `Favicon.tsx` | Client | favicon 图片组件，加载失败自动隐藏 |
+| `FloatingNav.tsx` | Client | 左侧固定导航，Logo + 图标文字 + 黑色高亮 + GitHub 链接 |
+| `ThemeToggle.tsx` | Client | 右上角主题切换按钮 |
+| `ContributionGrid.tsx` | Client | GitHub 贡献热力图（橙色色调） |
+| `ReadingPanel.tsx` | Client | 博客右侧滑出阅读面板 |
+| `ContentCard.tsx` | Server | 通用彩色卡片（左边条 + 淡彩背景 + Notion 阴影） |
+| `GlassSurface.jsx` | Client | ReactBits 玻璃折射特效组件 |
+| `GlassSurface.css` | — | GlassSurface 样式 |
 
 ## sections/ 模块组件
 
 每个模块采用 **Server → Client 数据传递** 模式：
 
-| Server 组件 | Client 组件 | 模块 |
-|-------------|-------------|------|
-| `HomeSection.tsx` | — (子组件为 Client) | 首页 |
-| `BlogSection.tsx` | `BlogSectionClient.tsx` | 博客 |
-| `JournalSection.tsx` | `JournalSectionClient.tsx` | 日常 |
-| `BookmarksSection.tsx` | `BookmarksSectionClient.tsx` | 收藏 |
-| `IdeasSection.tsx` | — (纯服务端渲染) | 想法 |
+| Server 组件 | Client 组件 | 模块 | 背景色 |
+|-------------|-------------|------|--------|
+| `HomeSection.tsx` | `HomeSectionClient.tsx` | 首页 Bento Grid | `#E8F4FD` |
+| `BlogSection.tsx` | `BlogSectionClient.tsx` | 博客列表+阅读面板 | `#FFF5F5` |
+| `BookmarksSection.tsx` | `BookmarksSectionClient.tsx` | 收藏卡片网格 | `#F0F9FF` |
+| `IdeasSection.tsx` | `IdeasSectionClient.tsx` | 想法瀑布流 | `#FFFBEB` |
+| `JournalSection.tsx` | `JournalSectionClient.tsx` | 日常瀑布流 | `#F0FDF4` |
 
-**数据流**：Server 组件调用 `lib/content.ts` 读取数据 → 序列化传递给 Client 组件 → Client 组件处理交互状态。
+**数据流**：Server 组件调用 `lib/content.ts`（async）读取 Turso 数据库 → 序列化传递给 Client 组件 → Client 组件处理交互状态。
+
+## 设计规范
+
+- 卡片：`border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]`
+- Hover：`hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]`
+- 标签：彩色 pill `text-xs font-semibold px-3 py-1 rounded-full`
+- 文字色：`text-[#0B0B0B]`（非纯黑）
+- 想法/日常：CSS `columns` 瀑布流（`columns-1 md:columns-2 lg:columns-3 gap-4`）

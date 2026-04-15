@@ -7,11 +7,12 @@ interface ContributionGridProps {
 }
 
 export function ContributionGrid({ contributions }: ContributionGridProps) {
-  // Group into weeks (columns)
+  // 按周分组（和 GitHub 一样，每列是一周，从周日开始）
   const weeks: ContributionDay[][] = [];
   let currentWeek: ContributionDay[] = [];
 
   if (contributions.length > 0) {
+    // 填充第一周开头的空白天
     const firstDay = new Date(contributions[0].date).getDay();
     for (let i = 0; i < firstDay; i++) {
       currentWeek.push({ date: "", count: 0, level: 0 });
@@ -25,91 +26,103 @@ export function ContributionGrid({ contributions }: ContributionGridProps) {
       currentWeek = [];
     }
   });
-  if (currentWeek.length > 0) {
-    weeks.push(currentWeek);
-  }
+  if (currentWeek.length > 0) weeks.push(currentWeek);
 
   const totalContributions = contributions.reduce((sum, d) => sum + d.count, 0);
 
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
+  // 动态生成月份标签（根据实际数据）
   const monthLabels: { label: string; col: number }[] = [];
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   let lastMonth = -1;
-  weeks.forEach((week, weekIdx) => {
-    const validDay = week.find((d) => d.date);
-    if (validDay) {
-      const month = new Date(validDay.date).getMonth();
+  weeks.forEach((week, i) => {
+    // 找到该周第一个有日期的天
+    const firstValidDay = week.find((d) => d.date);
+    if (firstValidDay) {
+      const month = new Date(firstValidDay.date).getMonth();
       if (month !== lastMonth) {
-        monthLabels.push({ label: MONTHS[month], col: weekIdx });
+        monthLabels.push({ label: monthNames[month], col: i });
         lastMonth = month;
       }
     }
   });
 
-  const totalWeeks = weeks.length;
+  const COLORS = [
+    "var(--contrib-0)",
+    "var(--contrib-1)",
+    "var(--contrib-2)",
+    "var(--contrib-3)",
+    "var(--contrib-4)",
+  ];
+
+  const cellSize = 10;
+  const cellGap = 3;
+  const gridWidth = weeks.length * (cellSize + cellGap);
+  const gridHeight = 7 * (cellSize + cellGap);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-muted-foreground">提交记录</span>
-        <span className="text-xs text-muted-foreground">
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-sm mb-1">
+        <span className="text-gray-500 dark:text-gray-400">提交记录</span>
+        <span className="font-medium text-[var(--foreground)]">
           {totalContributions} contributions
         </span>
       </div>
 
-      <div className="rounded-xl p-3" style={{ background: "var(--muted)", border: "1px solid var(--border)" }}>
-        {/* Month labels */}
-        <div
-          className="grid mb-1"
-          style={{ gridTemplateColumns: `repeat(${totalWeeks}, 1fr)` }}
+      {/* SVG 网格 - 自适应宽度 */}
+      <div className="w-full overflow-x-auto">
+        <svg
+          width={gridWidth}
+          height={gridHeight + 16}
+          viewBox={`0 0 ${gridWidth} ${gridHeight + 16}`}
+          style={{ maxWidth: "100%" }}
         >
-          {monthLabels.map((m, i) => (
-            <span
-              key={i}
-              className="text-[10px] text-muted-foreground"
-              style={{ gridColumn: m.col + 1 }}
+          {/* 月份标签 */}
+          {monthLabels.map(({ label, col }) => (
+            <text
+              key={`${label}-${col}`}
+              x={col * (cellSize + cellGap)}
+              y={10}
+              className="fill-gray-400 dark:fill-gray-500"
+              fontSize="10"
             >
-              {m.label}
-            </span>
+              {label}
+            </text>
           ))}
-        </div>
 
-        {/* Grid — responsive cells */}
-        <div
-          className="grid gap-[2px]"
-          style={{ gridTemplateColumns: `repeat(${totalWeeks}, 1fr)` }}
-        >
-          {weeks.map((week, weekIdx) => (
-            <div key={weekIdx} className="grid gap-[2px]" style={{ gridTemplateRows: "repeat(7, 1fr)" }}>
-              {week.map((day, dayIdx) => (
-                <div
-                  key={dayIdx}
-                  className="aspect-square rounded-[2px] w-full"
-                  title={day.date ? `${day.count} contributions on ${day.date}` : ""}
-                  style={{
-                    backgroundColor: day.date ? `var(--contrib-${day.level})` : "transparent",
-                  }}
-                />
-              ))}
-              {Array.from({ length: 7 - week.length }).map((_, i) => (
-                <div key={`pad-${i}`} className="aspect-square w-full" />
-              ))}
-            </div>
-          ))}
-        </div>
+          {/* 贡献格子 */}
+          {weeks.map((week, weekIdx) =>
+            week.map((day, dayIdx) => (
+              <rect
+                key={`${weekIdx}-${dayIdx}`}
+                x={weekIdx * (cellSize + cellGap)}
+                y={dayIdx * (cellSize + cellGap) + 14}
+                width={cellSize}
+                height={cellSize}
+                rx={2}
+                fill={day.date ? COLORS[day.level] : "transparent"}
+              >
+                {day.date && (
+                  <title>
+                    {day.count} contributions on {day.date}
+                  </title>
+                )}
+              </rect>
+            ))
+          )}
+        </svg>
+      </div>
 
-        {/* Legend */}
-        <div className="flex items-center justify-end gap-1 mt-2">
-          <span className="text-[9px] text-muted-foreground mr-0.5">Less</span>
-          {[0, 1, 2, 3, 4].map((level) => (
-            <div
-              key={level}
-              className="w-[10px] h-[10px] rounded-[2px]"
-              style={{ backgroundColor: `var(--contrib-${level})` }}
-            />
-          ))}
-          <span className="text-[9px] text-muted-foreground ml-0.5">More</span>
-        </div>
+      {/* 图例 */}
+      <div className="flex items-center justify-end gap-1 text-xs text-gray-400 dark:text-gray-500">
+        <span>Less</span>
+        {COLORS.map((color, i) => (
+          <div
+            key={i}
+            className="w-[10px] h-[10px] rounded-sm"
+            style={{ backgroundColor: color }}
+          />
+        ))}
+        <span>More</span>
       </div>
     </div>
   );
