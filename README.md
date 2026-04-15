@@ -6,27 +6,17 @@
 
 ## 预览
 
-- 线上地址：[mind-silo.vercel.app](https://mind-silo.vercel.app)
+- 线上地址：[https://xxxlite.vercel.app](https://xxxlite.vercel.app/)
 
 ## 功能
 
-- 🏠 **首页** — Bento Grid 布局（GitHub 2/3 + 想法 1/3 + 文章 2/3 + 收藏 1/3）
+- 🏠 **首页** — Bento Grid 布局
 - 💻 **GitHub** — 真实贡献热力图 + 仓库卡片 3×2 网格
 - 📝 **博客** — 文章列表，彩色标签，搜索，阅读面板
 - 🔖 **收藏** — 分类筛选 + 搜索，卡片网格
-- 💡 **想法** — 瀑布流（CSS columns），彩色标签
+- 💡 **想法** — 瀑布流，彩色标签
 - 📔 **日常** — 瀑布流，多种内容块
 - 🤖 **API** — OpenClaw webhook 自动分类入库
-- 📜 **滚动** — CSS scroll-snap 页面吸附
-
-## 设计风格
-
-**Neo-Brutalism**（新粗野主义）：
-- 粗黑边框 `border-3 border-black`
-- 硬阴影 `shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`
-- 每个页面独立背景色（蓝/粉/蓝/黄/绿）
-- 彩色标签系统
-- lucide-react 图标
 
 ## 技术栈
 
@@ -81,7 +71,7 @@ npm run dev
 
 ## 部署
 
-Vercel 自动部署，push 到 `main` 即可。环境变量在 Vercel Settings → Environment Variables 配置。
+Vercel 自动部署。环境变量在 Vercel Settings → Environment Variables 配置。
 
 ## License
 

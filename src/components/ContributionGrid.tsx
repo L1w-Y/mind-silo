@@ -102,9 +102,7 @@ export function ContributionGrid({ contributions }: ContributionGridProps) {
                 fill={day.date ? COLORS[day.level] : "transparent"}
               >
                 {day.date && (
-                  <title>
-                    {day.count} contributions on {day.date}
-                  </title>
+                  <title>{`${day.count} contributions on ${day.date}`}</title>
                 )}
               </rect>
             ))

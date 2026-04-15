@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Home, FileText, Bookmark, Lightbulb, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
 
 function GithubIcon({ className }: { className?: string }) {
   return (
@@ -21,17 +22,18 @@ const navItems = [
 
 export default function FloatingNav() {
   const [activeSection, setActiveSection] = useState("home");
+  const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
     navItems.forEach(({ id }) => {
-      const el = document.getElementById(id);
+      const el = document.querySelector(`[data-section="${id}"]`) || document.getElementById(id);
       if (!el) return;
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) setActiveSection(id);
         },
-        { rootMargin: "-40% 0px -55% 0px" }
+        { rootMargin: "-35% 0px -60% 0px" }
       );
       observer.observe(el);
       observers.push(observer);
@@ -40,60 +42,76 @@ export default function FloatingNav() {
   }, []);
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    const el = document.querySelector(`[data-section="${id}"]`) || document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
   return (
     <nav className="fixed left-6 top-1/2 -translate-y-1/2 z-50">
-      <div className="flex flex-col items-stretch gap-1 bg-white/95 backdrop-blur-md border-3 border-black rounded-2xl p-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div
+        ref={navRef}
+        className="flex flex-col items-stretch gap-1 border-3 rounded-2xl p-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+        style={{ backgroundColor: 'var(--nav-bg)', backdropFilter: 'blur(12px)', borderColor: 'var(--card-border)' }}
+      >
         {/* Logo */}
         <button
           onClick={() => scrollToSection("home")}
-          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors mb-1 cursor-pointer"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors mb-1 cursor-pointer"
+          style={{ color: 'var(--text-primary)' }}
         >
-          <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center flex-shrink-0">
-            <div className="w-4 h-4 bg-white rounded-full" />
+          <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--text-primary)' }}>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'var(--card-bg)' }} />
           </div>
-          <span className="font-bold text-sm text-[#0B0B0B]">Mind Silo</span>
+          <span className="font-bold text-sm">Mind Silo</span>
         </button>
 
-        <div className="h-px bg-gray-200 mx-2 mb-1" />
+        <div className="h-px mx-2 mb-1" style={{ backgroundColor: 'var(--border)' }} />
 
-        {/* Nav Items */}
-        <div className="flex flex-col gap-0.5">
+        {/* Nav Items with animated indicator */}
+        <div className="flex flex-col gap-0.5 relative">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const isActive = activeSection === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
-                  activeSection === item.id
-                    ? "bg-black text-white"
-                    : "text-[#0B0B0B] hover:bg-gray-100"
-                }`}
+                className="relative flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer z-10 transition-colors duration-200"
+                style={{ color: isActive ? 'var(--card-bg)' : 'var(--text-primary)' }}
               >
-                <Icon className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm font-medium">{item.label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="nav-indicator"
+                    className="absolute inset-0 rounded-xl"
+                    style={{ backgroundColor: 'var(--text-primary)' }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 350,
+                      damping: 30,
+                    }}
+                  />
+                )}
+                <Icon className="w-5 h-5 flex-shrink-0 relative z-10" />
+                <span className="text-sm font-medium relative z-10">{item.label}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="h-px bg-gray-200 mx-2 mt-1" />
+        <div className="h-px mx-2 mt-1" style={{ backgroundColor: 'var(--border)' }} />
 
         {/* GitHub Link */}
         <a
-          href={`https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || "L1w-Y"}`}
+          href="https://github.com/L1w-Y"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors mt-1"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors mt-1"
+          style={{ color: 'var(--text-primary)' }}
         >
           <GithubIcon className="w-5 h-5 flex-shrink-0" />
-          <span className="text-sm font-medium text-[#0B0B0B]">GitHub</span>
+          <span className="text-sm font-medium">GitHub</span>
         </a>
       </div>
     </nav>
