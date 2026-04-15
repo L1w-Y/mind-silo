@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import FloatingNav from "@/components/FloatingNav";
 import ThemeToggle from "@/components/ThemeToggle";
 import { HomeSection } from "@/components/sections/HomeSection";

@@ -17,10 +17,12 @@ const GITHUB_USERNAME = process.env.GITHUB_USERNAME || "L1w-Y";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
 
 export async function getRepos(): Promise<GitHubRepo[]> {
-  if (!GITHUB_TOKEN) return getSampleRepos();
+  if (!GITHUB_TOKEN) {
+    console.warn("[GitHub] No GITHUB_TOKEN, using sample repos");
+    return getSampleRepos();
+  }
 
   try {
-    // 优先获取 pinned repos（主页置顶的项目）
     const res = await fetch("https://api.github.com/graphql", {
       method: "POST",
       headers: {
@@ -46,16 +48,27 @@ export async function getRepos(): Promise<GitHubRepo[]> {
         }`,
         variables: { username: GITHUB_USERNAME },
       }),
-      next: { revalidate: 3600 },
+      cache: "no-store",
     });
 
-    if (!res.ok) return getSampleRepos();
+    if (!res.ok) {
+      console.warn("[GitHub] GraphQL repos API failed:", res.status);
+      return getSampleRepos();
+    }
 
     const json = await res.json();
+    if (json.errors) {
+      console.warn("[GitHub] GraphQL errors:", json.errors);
+      return getSampleRepos();
+    }
     const nodes = json?.data?.user?.pinnedItems?.nodes;
 
-    if (!nodes || nodes.length === 0) return getSampleRepos();
+    if (!nodes || nodes.length === 0) {
+      console.warn("[GitHub] No pinned repos found");
+      return getSampleRepos();
+    }
 
+    console.log("[GitHub] Loaded", nodes.length, "pinned repos");
     return nodes.map((repo: Record<string, unknown>) => ({
       name: repo.name as string,
       description: repo.description as string | null,
@@ -64,7 +77,8 @@ export async function getRepos(): Promise<GitHubRepo[]> {
       language: (repo.primaryLanguage as Record<string, string> | null)?.name || null,
       updated_at: repo.updatedAt as string,
     }));
-  } catch {
+  } catch (err) {
+    console.warn("[GitHub] Repos fetch error:", err);
     return getSampleRepos();
   }
 }
@@ -99,7 +113,7 @@ export async function getContributions(): Promise<ContributionDay[]> {
         `,
         variables: { username: GITHUB_USERNAME },
       }),
-      next: { revalidate: 3600 },
+      cache: "no-store",
     });
 
     if (!res.ok) return getSampleContributions();
